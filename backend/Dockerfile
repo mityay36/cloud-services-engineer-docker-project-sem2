@@ -22,6 +22,9 @@ COPY --from=builder /app/main .
 
 USER appuser
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8081/health || exit 1
+
 EXPOSE 8081
 
 CMD ["./main"]
