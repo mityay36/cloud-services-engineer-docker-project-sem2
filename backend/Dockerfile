@@ -1,6 +1,6 @@
 FROM golang:1.22.7-alpine AS builder
 
-RUN apk add --no-cache git ca-certificates tzdata
+RUN apk add --no-cache git ca-certificates tzdata wget
 
 RUN adduser -D -g '' -s /sbin/nologin appuser
 
@@ -16,19 +16,21 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -a -installsuffix cgo \
     -o main ./cmd/api
 
-FROM scratch
+FROM alpine:latest
 
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=builder /etc/passwd /etc/passwd
+RUN apk --no-cache add ca-certificates wget tzdata
 
-COPY --from=builder /app/main /main
+RUN adduser -D -g '' -s /sbin/nologin appuser
+
+WORKDIR /root/
+
+COPY --from=builder /app/main .
 
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD ["/main", "--health-check"] || exit 1
+  CMD ["wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"] || exit 1
 
 EXPOSE 8081
 
-ENTRYPOINT ["/main"]
+CMD ["./main"]
