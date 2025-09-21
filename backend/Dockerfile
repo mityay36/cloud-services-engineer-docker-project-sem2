@@ -1,4 +1,4 @@
-FROM golang:1.23.12-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 RUN apk add --no-cache git ca-certificates tzdata wget
 
@@ -15,7 +15,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
     -o main ./cmd/api && \
-    chmod +x main
+    chmod +x main && \
+    ls -la main
 
 FROM alpine:latest
 
@@ -25,12 +26,9 @@ RUN adduser -D -g '' -s /sbin/nologin appuser
 
 WORKDIR /root/
 
-COPY --from=builder --chmod=755 /app/main .
-
-RUN ls -la ./main
-
-USER appuser
-
+COPY --from=builder --chown=root:root /app/main ./main
+RUN chmod +x ./main && ls -la ./main
+  
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ["wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"] || exit 1
 
