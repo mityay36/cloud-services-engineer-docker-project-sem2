@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"os"
@@ -10,14 +12,22 @@ import (
 	"syscall"
 	"time"
 
-	"go.uber.org/zap"
-
 	"gitlab.praktikum-services.ru/Stasyan/momo-store/cmd/api/app"
 	"gitlab.praktikum-services.ru/Stasyan/momo-store/cmd/api/dependencies"
 	"gitlab.praktikum-services.ru/Stasyan/momo-store/internal/logger"
 )
 
 func main() {
+	healthCheckFlag := flag.Bool("health-check", false, "Perform health check")
+	flag.Parse()
+
+	if *healthCheckFlag {
+		resp, err := http.Get("http://localhost:8081/health")
+		if err != nil || resp.StatusCode != http.StatusOK {
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
 	logger.Setup()
 
 	if err := run(); err != nil {
