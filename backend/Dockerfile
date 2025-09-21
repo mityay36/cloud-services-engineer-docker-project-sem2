@@ -14,7 +14,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
-    -o main ./cmd/api
+    -o main ./cmd/api && \
+    chmod +x main
 
 FROM alpine:latest
 
@@ -24,7 +25,9 @@ RUN adduser -D -g '' -s /sbin/nologin appuser
 
 WORKDIR /root/
 
-COPY --from=builder /app/main .
+COPY --from=builder --chmod=755 /app/main .
+
+RUN ls -la ./main
 
 USER appuser
 
