@@ -2,8 +2,14 @@ name: Docker Project Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
 
 jobs:
   security-scan:
@@ -29,6 +35,15 @@ jobs:
           image-ref: 'backend-scan'
           format: 'sarif'
           output: 'backend-trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Upload Backend scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'backend-trivy-results.sarif'
+          category: 'backend'
       
       - name: Run Trivy vulnerability scanner on Frontend
         uses: aquasecurity/trivy-action@master
@@ -36,6 +51,32 @@ jobs:
           image-ref: 'frontend-scan'
           format: 'sarif'
           output: 'frontend-trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+      
+      - name: Upload Frontend scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'frontend-trivy-results.sarif'
+          category: 'frontend'
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+      
+      - name: Run backend tests
+        run: |
+          cd backend
+          go test -v ./...
 
   build_and_push_to_docker_hub:
       name: Push Docker image to DockerHub
