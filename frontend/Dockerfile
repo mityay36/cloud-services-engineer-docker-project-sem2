@@ -10,6 +10,7 @@ RUN npm ci --no-audit --no-fund
 
 COPY . .
 
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN npm run build
 
 FROM nginx:alpine
