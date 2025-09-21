@@ -6,6 +6,37 @@ on:
       - main
 
 jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      
+      - name: Build Backend for scanning
+        run: |
+          cd backend
+          docker build -t backend-scan .
+      
+      - name: Build Frontend for scanning
+        run: |
+          cd frontend
+          docker build -t frontend-scan .
+      
+      - name: Run Trivy vulnerability scanner on Backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'backend-scan'
+          format: 'sarif'
+          output: 'backend-trivy-results.sarif'
+      
+      - name: Run Trivy vulnerability scanner on Frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'frontend-scan'
+          format: 'sarif'
+          output: 'frontend-trivy-results.sarif'
+
   build_and_push_to_docker_hub:
       name: Push Docker image to DockerHub
       runs-on: ubuntu-latest
