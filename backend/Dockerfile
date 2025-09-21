@@ -2,8 +2,6 @@ FROM golang:1.23.12-alpine AS builder
 
 RUN apk add --no-cache git ca-certificates tzdata wget
 
-RUN adduser -D -g '' -s /sbin/nologin appuser
-
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -23,9 +21,11 @@ RUN apk --no-cache add ca-certificates wget tzdata
 
 RUN adduser -D -g '' -s /sbin/nologin appuser
 
-WORKDIR /root/
+RUN mkdir -p /app && chown appuser:appuser /app
 
-COPY --from=builder --chmod=755 --chown=appuser:appuser /app/main .
+WORKDIR /app
+
+COPY --from=builder --chown=appuser:appuser --chmod=755 /app/main ./main
 
 RUN ls -la ./main
 
