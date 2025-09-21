@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --no-audit --no-fund
+RUN npm ci --only=production --no-audit --no-fund
 
 COPY . .
 
@@ -27,8 +27,5 @@ RUN mkdir -p /var/cache/nginx /var/log/nginx /var/run/nginx && \
 EXPOSE 8080
 
 USER nginx
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"] || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
