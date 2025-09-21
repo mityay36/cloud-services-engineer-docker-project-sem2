@@ -1,6 +1,6 @@
 module gitlab.praktikum-services.ru/Stasyan/momo-store
 
-go 1.17
+go 1.22
 
 require (
 	github.com/go-chi/chi/v5 v5.0.7
@@ -24,6 +24,6 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect; indirect  // Обновлено с v1.26.0 на v1.33.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
